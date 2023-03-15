@@ -1,25 +1,19 @@
 import { Db, MongoClient, ObjectId } from "mongodb";
 import { Account } from "../interfaces/Account";
-import { User } from "../interfaces/User";
-import { getBankAccounts } from "../services/BankAccountsService";
 import { Collection } from "../utils/Constants";
-import { getBankAccountsByAccountId } from "./BankAccountsDao";
-import { getUserById } from "./UsersDao";
 
 const CollectionName = Collection.Accounts;
 
-export async function getAccountByUserId(userId: string) {
+export async function getAccountsByUserId(userId: string) {
   try {
     const collection = (database as Db).collection(CollectionName);
     const query = {
       userId,
     };
     const options = {};
-    const user = (await getUserById(userId)) as User;
-    const bankAccounts = await getBankAccountsByAccountId(
-      user.accountId.toString()
-    );
-    return bankAccounts;
+    const cursor = collection.find(query, options);
+    const accounts = await cursor.toArray();
+    return accounts;
   } catch (error) {
     throw error;
   }
@@ -46,6 +40,23 @@ export async function updateAccountById(
     };
     const result = await collection.updateOne(query, { $set: account });
     if (result.matchedCount === result.modifiedCount) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteAccountById(accountId: string): Promise<boolean> {
+  try {
+    const collection = (database as Db).collection(CollectionName);
+    const query = {
+      _id: new ObjectId(accountId),
+    };
+    const result = await collection.deleteOne(query);
+    if (result.deletedCount === 1) {
       return true;
     } else {
       return false;
