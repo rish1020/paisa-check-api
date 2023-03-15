@@ -9,5 +9,5 @@ export interface Category {
   _id: ObjectId;
   type: CategoryType;
   name: string;
-  accountId: ObjectId;
+  userId: ObjectId;
 }

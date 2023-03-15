@@ -4,11 +4,11 @@ import { Db, MongoClient, ObjectId } from "mongodb";
 
 const CollectionName = Collection.Transactions;
 
-export async function getTransactionsByAccountId(accountId: string) {
+export async function getTransactionsByUserId(userId: string) {
   try {
     const collection = (database as Db).collection(CollectionName);
     const query = {
-      accountId,
+      userId,
     };
     const options = {};
     const cursor = collection.find(query, options);
@@ -39,12 +39,14 @@ export async function createNewTransaction(transaction: Partial<Transaction>) {
     const document = {
       ...transaction,
     };
-    if (transaction.toBankAccountId)
-      document.toBankAccountId = new ObjectId(transaction.toBankAccountId);
-    if (transaction.fromBankAccountId)
-      document.fromBankAccountId = new ObjectId(transaction.fromBankAccountId);
+    if (transaction.toAccountId)
+      document.toAccountId = new ObjectId(transaction.toAccountId);
+    if (transaction.fromAccountId)
+      document.fromAccountId = new ObjectId(transaction.fromAccountId);
     if (transaction.expenseModeId)
       document.expenseModeId = new ObjectId(transaction.expenseModeId);
+    if (transaction.categoryId)
+      document.categoryId = new ObjectId(transaction.categoryId);
 
     const collection = (database as Db).collection(CollectionName);
     const result = await collection.insertOne(document);

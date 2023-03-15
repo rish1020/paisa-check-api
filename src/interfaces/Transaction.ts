@@ -6,18 +6,18 @@ export enum TransactionType {
   Transfer = "Transfer",
   PayLater = "PayLater",
 }
-
 export interface Transaction {
   _id: ObjectId;
-  type: TransactionType;
+  type: string;
   date: Date;
   amount: number;
-  category: string;
-  toBankAccountId: ObjectId;
-  fromBankAccountId: ObjectId;
+  categoryId: ObjectId;
+  toAccountId: ObjectId;
+  fromAccountId: ObjectId;
   note: string;
   expenseModeId: ObjectId;
   fees: number;
+  userId: ObjectId;
 }
 
 export interface ExpenseMode {
@@ -31,13 +31,14 @@ export interface ExpenseMode {
 
 export interface TransactionDTO {
   _id: string;
-  type: TransactionType;
+  type: string;
   date: Date;
   amount: number;
-  category: string;
-  toBankAccountId: string;
-  fromBankAccountId: string;
+  categoryId: string;
+  toAccountId?: string;
+  fromAccountId?: string;
   note: string;
-  expenseModeId: string;
-  fees: number;
+  expenseModeId?: string;
+  fees?: number;
+  userId: string;
 }

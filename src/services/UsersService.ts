@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { createNewAccount } from "../dao/AccountsDao";
-import { addBankAccountForAccountId } from "../dao/BankAccountsDao";
 import { createNewUser, getUserByEmail, getUserById } from "../dao/UsersDao";
 import { Account } from "../interfaces/Account";
-import { defaultBankAccount } from "../interfaces/BankAccount";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import jwt_decode from "jwt-decode";
@@ -58,10 +56,6 @@ export async function createUser(
     const encryptedPassword = await bcrypt.hash(password, 10);
 
     const newAccount = await createNewAccount(account);
-    await addBankAccountForAccountId(newAccount.insertedId.toString(), {
-      ...defaultBankAccount,
-      accountId: newAccount.insertedId,
-    });
 
     const user: Partial<User> = {
       accountId: newAccount.insertedId,

@@ -4,7 +4,6 @@ import {
   createTransaction,
   deleteTransaction,
   getTransactions,
-  updateTransaction,
 } from "../services/TransactionService";
 
 export function transactionController(app: Express) {
@@ -12,6 +11,5 @@ export function transactionController(app: Express) {
     .route(RouteTransactions)
     .get(getTransactions)
     .post(createTransaction)
-    .put(updateTransaction)
     .delete(deleteTransaction);
 }

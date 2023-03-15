@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import {
   createNewCategory,
   deleteCategoryById,
-  getCategoriesByAccountId,
+  getCategoriesByUserId,
   updateCategoryById,
 } from "../dao/CategoryDao";
 import { ResponseEntity } from "../interfaces/ResponseEntity";
@@ -13,8 +13,8 @@ export async function getCategories(
   next: NextFunction
 ) {
   try {
-    const accountId = req.query.accountId as string;
-    const categories = await getCategoriesByAccountId(accountId);
+    const userId = req.query.userId as string;
+    const categories = await getCategoriesByUserId(userId);
     const response: ResponseEntity = {
       ok: true,
       data: categories,

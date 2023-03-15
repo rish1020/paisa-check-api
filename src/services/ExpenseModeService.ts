@@ -5,9 +5,7 @@ import {
   getExpenseModesByUserId,
   updateExpenseModeById,
 } from "../dao/ExpenseModeDao";
-import { Category } from "../interfaces/Category";
 import { ResponseEntity } from "../interfaces/ResponseEntity";
-import { ExpenseMode } from "../interfaces/Transaction";
 
 export async function getExpenseModes(
   req: Request,

@@ -19,6 +19,19 @@ export async function getAccountsByUserId(userId: string) {
   }
 }
 
+export async function getAccountByAccountId(accountId: string) {
+  try {
+    const collection = (database as Db).collection(CollectionName);
+    const query = {
+      _id: new ObjectId(accountId),
+    };
+    const account = await collection.findOne(query);
+    return account;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function createNewAccount(account: Partial<Account>) {
   try {
     const collection = (database as Db).collection(CollectionName);

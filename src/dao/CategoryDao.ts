@@ -4,11 +4,11 @@ import { Db, MongoClient, ObjectId } from "mongodb";
 
 const CollectionName = Collection.Categories;
 
-export async function getCategoriesByAccountId(accountId?: string) {
+export async function getCategoriesByUserId(userId?: string) {
   try {
     const collection = (database as Db).collection(CollectionName);
     const query = {
-      $or: [{ accountId: "default" }, { accountId }],
+      $or: [{ userId: "default" }, { userId }],
     };
     const options = {};
     const cursor = collection.find(query, options);

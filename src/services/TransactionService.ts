@@ -1,22 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import {
-  getBankAccountsByBankAccountId,
-  updateBankAccountById,
-} from "../dao/BankAccountsDao";
+import { getAccountByAccountId, updateAccountById } from "../dao/AccountsDao";
 import { getExpenseModeById } from "../dao/ExpenseModeDao";
 import {
   createNewTransaction,
   deleteTransactionById,
   getTransactionByTransactionId,
-  getTransactionsByAccountId,
+  getTransactionsByUserId,
   updateTransactionyById,
 } from "../dao/TransactionDao";
-import { BankAccount } from "../interfaces/BankAccount";
+import { Account } from "../interfaces/Account";
 import { ResponseEntity } from "../interfaces/ResponseEntity";
 import {
   ExpenseMode,
   Transaction,
-  TransactionDTO,
   TransactionType,
 } from "../interfaces/Transaction";
 
@@ -26,8 +22,8 @@ export async function getTransactions(
   next: NextFunction
 ) {
   try {
-    const accountId = req.query.accountId as string;
-    const transactions = await getTransactionsByAccountId(accountId);
+    const userId = req.query.userId as string;
+    const transactions = await getTransactionsByUserId(userId);
     const response: ResponseEntity = {
       ok: true,
       data: transactions,
@@ -45,53 +41,47 @@ export async function createTransaction(
 ) {
   try {
     const body = req.body;
-    let document = {};
     let result;
     if (body.type === TransactionType.Credit) {
-      const toBankAccountId = req.body.toBankAccountId;
-      await createNewTransaction(req.body);
-      const bankAccount = (await getBankAccountsByBankAccountId(
-        toBankAccountId
-      )) as BankAccount;
-      const balance = bankAccount.balance + req.body.amount;
-      const success = await updateBankAccountById(toBankAccountId, { balance });
+      const transactionSuccess = await createNewTransaction(req.body);
+      const toAccountId = req.body.toAccountId;
+      if (toAccountId) {
+        const account = (await getAccountByAccountId(toAccountId)) as Account;
+        const balance = account.balance + req.body.amount;
+        await updateAccountById(toAccountId, { balance });
+      }
       result = {
-        ok: success,
+        ok: transactionSuccess.insertedId,
       };
     }
     if (body.type === TransactionType.Debit) {
-      const expenseMode = (await getExpenseModeById(
-        req.body.expenseModeId
-      )) as ExpenseMode;
-      await createNewTransaction(req.body);
-      const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.accountId.toString()
-      )) as BankAccount;
-      const balance = bankAccount.balance - req.body.amount;
-      const success = await updateBankAccountById(
-        expenseMode.accountId.toString(),
-        { balance }
-      );
+      const transactionSuccess = await createNewTransaction(req.body);
+      const fromAccountId = req.body.fromAccountId;
+      if (fromAccountId) {
+        const account = (await getAccountByAccountId(fromAccountId)) as Account;
+        const balance = account.balance - req.body.amount;
+        await updateAccountById(fromAccountId, { balance });
+      }
       result = {
-        ok: success,
+        ok: transactionSuccess.insertedId,
       };
     }
     if (body.type === TransactionType.Transfer) {
       await createNewTransaction(req.body);
-      const toBankAccountId = req.body.toBankAccountId;
-      const toBankAccount = (await getBankAccountsByBankAccountId(
-        toBankAccountId
-      )) as BankAccount;
-      const fromBankAccountId = req.body.fromBankAccountId;
-      const fromBankAccount = (await getBankAccountsByBankAccountId(
-        fromBankAccountId
-      )) as BankAccount;
-      const toBalance = toBankAccount.balance + req.body.amount;
-      const fromBalance = fromBankAccount.balance - req.body.amount;
-      const result1 = await updateBankAccountById(toBankAccountId, {
+      const toAccountId = req.body.toAccountId;
+      const toAccount = (await getAccountByAccountId(toAccountId)) as Account;
+
+      const fromAccountId = req.body.fromAccountId;
+      const fromAccount = (await getAccountByAccountId(
+        fromAccountId
+      )) as Account;
+
+      const toBalance = toAccount.balance + req.body.amount;
+      const fromBalance = fromAccount.balance - req.body.amount;
+      const result1 = await updateAccountById(toAccountId, {
         balance: toBalance,
       });
-      const result2 = await updateBankAccountById(fromBankAccountId, {
+      const result2 = await updateAccountById(fromAccountId, {
         balance: fromBalance,
       });
       result = {
@@ -99,92 +89,12 @@ export async function createTransaction(
       };
     }
     if (body.type === TransactionType.PayLater) {
-      const expenseMode = (await getExpenseModeById(
-        req.body.expenseModeId
-      )) as ExpenseMode;
-      await createNewTransaction(req.body);
-      const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.accountId.toString()
-      )) as BankAccount;
-      const balance = bankAccount.balance - req.body.amount;
-      const success = await updateBankAccountById(
-        expenseMode.accountId.toString(),
-        { balance }
-      );
+      const success = await createNewTransaction(req.body);
       result = {
         ok: success,
       };
     }
     res.send(result);
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function updateTransaction(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const transactionId = req.query._id as string;
-    const newAmount = req.body.amount;
-    const transaction = (await getTransactionByTransactionId(
-      transactionId
-    )) as Transaction;
-    const previousAmount = transaction.amount;
-    const success = await updateTransactionyById(transactionId, req.body);
-    if (transaction.type === TransactionType.Credit) {
-      const diffAmount = newAmount - previousAmount;
-      const bankAccount = (await getBankAccountsByBankAccountId(
-        transaction.toBankAccountId.toString()
-      )) as BankAccount;
-      const balance = bankAccount.balance + diffAmount;
-      const success = await updateBankAccountById(
-        transaction.toBankAccountId.toString(),
-        { balance }
-      );
-    }
-    if (transaction.type === TransactionType.Debit) {
-      const expenseMode = (await getExpenseModeById(
-        transaction.expenseModeId.toString()
-      )) as ExpenseMode;
-      const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.accountId.toString()
-      )) as BankAccount;
-      const diffAmount = newAmount - previousAmount;
-      const balance = bankAccount.balance - diffAmount;
-      const success = await updateBankAccountById(
-        expenseMode.accountId.toString(),
-        { balance }
-      );
-    }
-    if (transaction.type === TransactionType.Transfer) {
-      const diffAmount = newAmount - previousAmount;
-      const toBankAccountId = transaction.toBankAccountId;
-      const toBankAccount = (await getBankAccountsByBankAccountId(
-        toBankAccountId.toString()
-      )) as BankAccount;
-      const fromBankAccountId = transaction.fromBankAccountId;
-      const fromBankAccount = (await getBankAccountsByBankAccountId(
-        fromBankAccountId.toString()
-      )) as BankAccount;
-      const toBalance = toBankAccount.balance + diffAmount;
-      const fromBalance = fromBankAccount.balance - diffAmount;
-      const result1 = await updateBankAccountById(toBankAccountId.toString(), {
-        balance: toBalance,
-      });
-      const result2 = await updateBankAccountById(
-        fromBankAccountId.toString(),
-        {
-          balance: fromBalance,
-        }
-      );
-    }
-    const response: ResponseEntity = {
-      ok: success,
-    };
-    res.send(response);
   } catch (error) {
     next(error);
   }
@@ -196,7 +106,44 @@ export async function deleteTransaction(
   next: NextFunction
 ) {
   try {
-    const transactionId = req.body._id;
+    const transactionId = req.query.transactionId as string;
+    const transaction = (await getTransactionByTransactionId(
+      transactionId
+    )) as Transaction;
+    if (transaction.type === TransactionType.Credit) {
+      const toAccountId = transaction.toAccountId.toString();
+      if (toAccountId) {
+        const account = (await getAccountByAccountId(toAccountId)) as Account;
+        const balance = account.balance - transaction.amount;
+        await updateAccountById(toAccountId, { balance });
+      }
+    }
+    if (transaction.type === TransactionType.Debit) {
+      const fromAccountId = transaction.fromAccountId.toString();
+      if (fromAccountId) {
+        const account = (await getAccountByAccountId(fromAccountId)) as Account;
+        const balance = account.balance + transaction.amount;
+        await updateAccountById(fromAccountId, { balance });
+      }
+    }
+    if (transaction.type === TransactionType.Transfer) {
+      const toAccountId = transaction.toAccountId.toString();
+      const toAccount = (await getAccountByAccountId(toAccountId)) as Account;
+
+      const fromAccountId = transaction.fromAccountId.toString();
+      const fromAccount = (await getAccountByAccountId(
+        fromAccountId
+      )) as Account;
+
+      const toBalance = toAccount.balance - transaction.amount;
+      const fromBalance = fromAccount.balance + transaction.amount;
+      await updateAccountById(toAccountId, {
+        balance: toBalance,
+      });
+      await updateAccountById(fromAccountId, {
+        balance: fromBalance,
+      });
+    }
     const success = await deleteTransactionById(transactionId);
     const response: ResponseEntity = {
       ok: success,
