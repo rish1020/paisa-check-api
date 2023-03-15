@@ -4,11 +4,11 @@ import { Db, MongoClient, ObjectId } from "mongodb";
 
 const CollectionName = Collection.ExpenseModes;
 
-export async function getExpenseModesByAccountId(accountId: string) {
+export async function getExpenseModesByUserId(userId: string) {
   try {
     const collection = (database as Db).collection(CollectionName);
     const query = {
-      accountId: new ObjectId(accountId),
+      userId,
     };
     const options = {};
     const cursor = collection.find(query, options);
@@ -34,19 +34,10 @@ export async function getExpenseModeById(expenseModeId: string) {
   }
 }
 
-export async function createNewExpenseMode(
-  accountId: string,
-  bankAccountId: string,
-  expenseMode: Partial<ExpenseMode>
-) {
+export async function createNewExpenseMode(expenseMode: Partial<ExpenseMode>) {
   try {
-    const body = {
-      accountId: new ObjectId(accountId),
-      bankAccountId: new ObjectId(bankAccountId),
-      ...expenseMode,
-    };
     const collection = (database as Db).collection(CollectionName);
-    const result = await collection.insertOne(body);
+    const result = await collection.insertOne(expenseMode);
     return result;
   } catch (error) {
     throw error;

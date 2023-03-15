@@ -23,8 +23,10 @@ export interface Transaction {
 export interface ExpenseMode {
   _id: ObjectId;
   name: string;
-  bankAccountId: ObjectId;
   accountId: ObjectId;
+  subMode: string;
+  type: string;
+  userId: string;
 }
 
 export interface TransactionDTO {

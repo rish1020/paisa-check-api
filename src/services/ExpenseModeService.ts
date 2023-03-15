@@ -2,9 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import {
   createNewExpenseMode,
   deleteExpenseModeById,
-  getExpenseModesByAccountId,
+  getExpenseModesByUserId,
   updateExpenseModeById,
-} from "../dao/ExpenseMode";
+} from "../dao/ExpenseModeDao";
 import { Category } from "../interfaces/Category";
 import { ResponseEntity } from "../interfaces/ResponseEntity";
 import { ExpenseMode } from "../interfaces/Transaction";
@@ -15,8 +15,8 @@ export async function getExpenseModes(
   next: NextFunction
 ) {
   try {
-    const accountId = req.query.accountId as string;
-    const expenseModes = await getExpenseModesByAccountId(accountId);
+    const userId = req.query.userId as string;
+    const expenseModes = await getExpenseModesByUserId(userId);
     const response: ResponseEntity = {
       ok: true,
       data: expenseModes,
@@ -33,14 +33,7 @@ export async function createExpenseMode(
   next: NextFunction
 ) {
   try {
-    const accountId = req.body.accountId;
-    const bankAccountId = req.body.bankAccountId;
-    const name = req.body.name;
-    const newExpenseMode = await createNewExpenseMode(
-      accountId,
-      bankAccountId,
-      { name }
-    );
+    const newExpenseMode = await createNewExpenseMode(req.body);
     const body: ResponseEntity = {
       ok: true,
       data: newExpenseMode,
@@ -57,7 +50,7 @@ export async function updateExpenseMode(
   next: NextFunction
 ) {
   try {
-    const expenseModeId = req.query.id as string;
+    const expenseModeId = req.query.expenseModeId as string;
     const expenseMode = req.body;
     const success = await updateExpenseModeById(expenseModeId, expenseMode);
     const response: ResponseEntity = {
@@ -75,7 +68,7 @@ export async function deleteExpenseMode(
   next: NextFunction
 ) {
   try {
-    const expenseModeId = req.body._id;
+    const expenseModeId = req.query.expenseModeId as string;
     const success = await deleteExpenseModeById(expenseModeId);
     const response: ResponseEntity = {
       ok: success,

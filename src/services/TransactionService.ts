@@ -3,7 +3,7 @@ import {
   getBankAccountsByBankAccountId,
   updateBankAccountById,
 } from "../dao/BankAccountsDao";
-import { getExpenseModeById } from "../dao/ExpenseMode";
+import { getExpenseModeById } from "../dao/ExpenseModeDao";
 import {
   createNewTransaction,
   deleteTransactionById,
@@ -65,11 +65,11 @@ export async function createTransaction(
       )) as ExpenseMode;
       await createNewTransaction(req.body);
       const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.bankAccountId.toString()
+        expenseMode.accountId.toString()
       )) as BankAccount;
       const balance = bankAccount.balance - req.body.amount;
       const success = await updateBankAccountById(
-        expenseMode.bankAccountId.toString(),
+        expenseMode.accountId.toString(),
         { balance }
       );
       result = {
@@ -104,11 +104,11 @@ export async function createTransaction(
       )) as ExpenseMode;
       await createNewTransaction(req.body);
       const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.bankAccountId.toString()
+        expenseMode.accountId.toString()
       )) as BankAccount;
       const balance = bankAccount.balance - req.body.amount;
       const success = await updateBankAccountById(
-        expenseMode.bankAccountId.toString(),
+        expenseMode.accountId.toString(),
         { balance }
       );
       result = {
@@ -150,12 +150,12 @@ export async function updateTransaction(
         transaction.expenseModeId.toString()
       )) as ExpenseMode;
       const bankAccount = (await getBankAccountsByBankAccountId(
-        expenseMode.bankAccountId.toString()
+        expenseMode.accountId.toString()
       )) as BankAccount;
       const diffAmount = newAmount - previousAmount;
       const balance = bankAccount.balance - diffAmount;
       const success = await updateBankAccountById(
-        expenseMode.bankAccountId.toString(),
+        expenseMode.accountId.toString(),
         { balance }
       );
     }
