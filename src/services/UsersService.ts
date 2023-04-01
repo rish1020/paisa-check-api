@@ -17,6 +17,9 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
     }
     const tokenPayload: TokenPayload = jwt_decode(token);
     const user = (await getUserById(tokenPayload.userId)) as User;
+    if (!user) {
+      return res.status(404).send("User not found!");
+    }
     const response: ResponseEntity = {
       ok: true,
       data: {
