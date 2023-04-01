@@ -9,7 +9,7 @@ const app: Express = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3030",
+    origin: ["http://localhost:3030", "https://paisa-check-ui.vercel.app"],
   })
 );
 
