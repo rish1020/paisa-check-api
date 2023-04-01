@@ -3,8 +3,15 @@ import { registerControllers } from "./controllers";
 import { ResponseEntity } from "./interfaces/ResponseEntity";
 import { json } from "body-parser";
 import { config as dotenvConfig } from "dotenv";
+import cors from "cors";
 
 const app: Express = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:3030",
+  })
+);
 
 app.use(json());
 dotenvConfig();
